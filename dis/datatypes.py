@@ -60,7 +60,7 @@ class Hex8(BaseType):
     self.raw = struct.unpack("<B", contents[offset:offset + self.size])[0]
 
     self.value = "0x%02x" % self.raw
-    self.src = "db %s" % self.value
+    self.src = f"db {self.value}"
 
 
 class Hex32(BaseType):
@@ -72,7 +72,7 @@ class Hex32(BaseType):
     self.raw = struct.unpack("<L", contents[offset:offset + self.size])[0]
 
     self.value = "0x%08x" % self.raw
-    self.src = "dd %s" % self.value
+    self.src = f"dd {self.value}"
 
 
 
@@ -84,7 +84,7 @@ class Hex32b(BaseType):
     self.size = 4
     self.raw = struct.unpack(">L", contents[offset:offset + self.size])[0]
     self.value = "0x%08x" % self.raw
-    self.src = "ddbe %s" % self.value
+    self.src = f"ddbe {self.value}"
 
 
 class Hex16(BaseType):
@@ -96,7 +96,7 @@ class Hex16(BaseType):
     self.raw = struct.unpack("<H", contents[offset:offset + self.size])[0]
 
     self.value = "0x%04x" % self.raw
-    self.src = "dd %s" % self.value
+    self.src = f"dd {self.value}"
 
 
 class U8(BaseType):
@@ -107,7 +107,7 @@ class U8(BaseType):
     self.size = 1
     self.raw = struct.unpack("<B", contents[offset:offset + self.size])[0]
     self.value = "%i" % self.raw
-    self.src = "db %s" % self.value
+    self.src = f"db {self.value}"
 
 
 
@@ -119,7 +119,7 @@ class U32(BaseType):
     self.size = 4
     self.raw = struct.unpack("<L", contents[offset:offset + self.size])[0]
     self.value = "%i" % self.raw
-    self.src = "dd %s" % self.value
+    self.src = f"dd {self.value}"
 
 
 
@@ -131,7 +131,7 @@ class U32b(BaseType):
     self.size = 4
     self.raw = struct.unpack(">L", contents[offset:offset + self.size])[0]
     self.value = "%i" % self.raw
-    self.src = "ddbe %s" % self.value
+    self.src = f"ddbe {self.value}"
 
 
 
@@ -143,7 +143,7 @@ class U16(BaseType):
     self.size = 2
     self.raw = struct.unpack("<H", contents[offset:offset + self.size])[0]
     self.value = "%i" % self.raw
-    self.src = "dw %s" % self.value
+    self.src = f"dw {self.value}"
 
 
 
@@ -168,8 +168,8 @@ class Bitmask8(BaseType):
       if leftover & value:
         leftover ^= value
         lValue.append(name)
-        lSrc.append("%s.%s" % (self.prefix, name))
-    
+        lSrc.append(f"{self.prefix}.{name}")
+
     if leftover:
       # TODO: in binary ?
       lValue.append("0x%02X" % leftover)
@@ -182,13 +182,13 @@ class Bitmask8(BaseType):
       lSrc.append("0")
 
     self.value = " | ".join(lValue)
-    self.src = "db %s" % (" | ".join(lSrc))
+    self.src = f'db {" | ".join(lSrc)}'
 
 
   def defs(self):
-    return "\n".join(
-      ["; %s (bitmask definition)" % self.name] +
-      ["%s.%s equ %i" % (self. prefix, self.members[c], c) for c in self.members] + [""])    
+    return "\n".join((([f"; {self.name} (bitmask definition)"] + [
+        "%s.%s equ %i" % (self.prefix, self.members[c], c) for c in self.members
+    ]) + [""]))    
 
 
 
@@ -208,16 +208,17 @@ class Enum8(BaseType):
 
     if self.raw in self.members:
       self.value = self.members[self.raw]
-      self.src = "db %s.%s" % (self.prefix, self.value)
+      self.src = f"db {self.prefix}.{self.value}"
     else:
       self.value = "%02X" % self.raw
-      self.src = "db %s" % self.value
+      self.src = f"db {self.value}"
 
 
   def defs(self):
-    return "\n".join(
-      ["; %s (enum definition)" % self.name] +
-      ["%s.%s equ 0x%02X" % (self.prefix,self.members[c], c) for c in self.members] + [""])
+    return "\n".join((([f"; {self.name} (enum definition)"] + [
+        "%s.%s equ 0x%02X" % (self.prefix, self.members[c], c)
+        for c in self.members
+    ]) + [""]))
 
 
 
@@ -239,14 +240,15 @@ class Enum32(BaseType):
       self.value = self.members[self.raw]
       self.src = "dd %s.%s ; %08x" % (self.prefix, self.value, self.raw)
     else:
-      self.value = "%08X" % self.raw 
-      self.src = "dd %s" % self.value
+      self.value = "%08X" % self.raw
+      self.src = f"dd {self.value}"
 
 
   def defs(self):
-    return "\n".join(
-      ["; %s (enum definition)" % self.name] +
-      ["%s.%s equ 0x%08X" % (self.prefix,self.members[c], c) for c in self.members] + [""])
+    return "\n".join((([f"; {self.name} (enum definition)"] + [
+        "%s.%s equ 0x%08X" % (self.prefix, self.members[c], c)
+        for c in self.members
+    ]) + [""]))
 
 
 
@@ -276,8 +278,8 @@ class Blob(BaseType):
     self.offset = offset
     self.raw = contents[offset:offset + self.size]
     # incbin <file>, offset, length
-    self.value = "%s" % (", ".join("0x%02x" % c for c in self.raw))
-    self.src = "db %s" % self.value
+    self.value = f'{", ".join(("0x%02x" % c for c in self.raw))}'
+    self.src = f"db {self.value}"
 
 
 

@@ -23,7 +23,7 @@ from parsers import *
 
 
 def section(s):
-  return [("; %s " % s) .ljust(80, "="), ""]
+  return [f"; {s} ".ljust(80, "="), ""]
 
 
 class sbudEncoder(json.JSONEncoder):
@@ -124,7 +124,7 @@ if __name__ == "__main__":
           """ .format (json=
             urllib.parse.quote(json.dumps(fileInfo,cls=sbudEncoder)))
           )
-            
+
         # system("launch.htm")
       break
   else:

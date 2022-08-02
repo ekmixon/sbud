@@ -38,20 +38,15 @@ class FileInfo:
     self.struc = None
     self.jsonFilter = ("fileName", "length", "b64contents", "MD5", "SHA1", "SHA256", "struc")
     self.src = [
-      "; '%s' (%i bytes)" % (self.fileName, self.length),
-      "; MD5:    %s" % self.MD5,
-      "; SHA1:   %s" % self.SHA1,
-      "; SHA256: %s" % self.SHA256,
+        "; '%s' (%i bytes)" % (self.fileName, self.length),
+        f"; MD5:    {self.MD5}",
+        f"; SHA1:   {self.SHA1}",
+        f"; SHA256: {self.SHA256}",
     ]
 
 
 def asmDir(symbols="symbols.map"):
-  return [
-    "[map symbols %s]" % symbols,
-   #"CPU 8086  ; to disable instructions",
-   #"[warning -orphan-labels] ; pretty labels without semicolons",
-    "",
-  ]
+  return [f"[map symbols {symbols}]", ""]
 
 
 def strToASM(s):
@@ -89,8 +84,7 @@ def strToASM(s):
       continue
 
     l.append(b"\\x%02x" % v)
-  r = b"".join(l)
-  return r
+  return b"".join(l)
 
 
 
@@ -101,7 +95,7 @@ def intToASM(i):
     return "%i" % i
   hex = "%xh" % i
   if hex[0] in "abcdef":
-    hex = "0" + hex
+    hex = f"0{hex}"
   return hex
 
 
@@ -122,18 +116,18 @@ ASM_SIZES = {1:"b", 2:"w", 4:"d"}
 
 def makeASMstruc(struc_):
   name, members = struc_
-  sMembers = ["  .%s res%s 1" % (mName, ASM_SIZES[mSize]) for mName, mSize in members]
-  return "\n".join(["", "struc %s" % name] + sMembers + ["endstruc"])
+  sMembers = [f"  .{mName} res{ASM_SIZES[mSize]} 1" for mName, mSize in members]
+  return "\n".join(["", f"struc {name}"] + sMembers + ["endstruc"])
 
 
 def declareStruc(struc_, values):
   name, members = struc_
   sMembers = []
   for i, m in enumerate(members):
-    mName, mSize = m
     if values[i] != "0":
-      sMembers.append("  at %s.%s, _d%s %s" % (name, mName, ASM_SIZES[mSize], values[i]))
-  return "\n".join(["", "istruc %s" % name] + sMembers + ["iend"])
+      mName, mSize = m
+      sMembers.append(f"  at {name}.{mName}, _d{ASM_SIZES[mSize]} {values[i]}")
+  return "\n".join(["", f"istruc {name}"] + sMembers + ["iend"])
 
 
 def status(offset, var=None):
@@ -200,7 +194,7 @@ class Structure:
     self.jsonFilter = ["name", "offset", "subEls", "type", "size"]
   
   def __repr__(self):
-    return "%s %s" % (self.name, repr(self.subEls))
+    return f"{self.name} {repr(self.subEls)}"
 
 
 #TODO: put in separate class
@@ -313,7 +307,7 @@ def showBytes(source, contents, sizeThreshold=2, sameLine=True, preLines=0, post
         s += " %s ..... %s" % (" ".join("{nibble:02x}".format(nibble=c) for c in contents[offset:offset + borders]),
           " ".join("{nibble:02x}".format(nibble=c) for c in contents[offset + length - borders:offset + length])
           )
-    
+
     if length > sizeThreshold:
       s += " (+%i)" % (length)
 

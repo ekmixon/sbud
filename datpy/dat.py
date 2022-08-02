@@ -35,7 +35,6 @@ def Hexii(v):
     b"\x0B":"\\v", # VT
     b"\x0C":"\\f", # FF
     b"\x0D":"\\r", # CR
-
 #    b"\x1A":"^Z", # Ctrl-Z
     b"\x1B":"\\e", # ESC
   }
@@ -45,13 +44,10 @@ def Hexii(v):
 
   # printable ASCII
   if v >= ord(' ') and v <= ord('~'):
-    return "." + chr(v)
+    return f".{chr(v)}"
 
   # octal short
-  if v < 8:
-    return "\\%x" % v
-
-  return "%02x" % v
+  return "\\%x" % v if v < 8 else "%02x" % v
 
 
 def mixedHex(content, strucOffset, lineOffset, lineLength, indexes):
@@ -62,8 +58,7 @@ def mixedHex(content, strucOffset, lineOffset, lineLength, indexes):
       l.append(Hexii(c))
     else:
       l.append("%02X" % c)
-  r = " ".join(l)
-  return r
+  return " ".join(l)
 
 
 def getSizeIdx(struc, subEls, offset):
@@ -95,8 +90,8 @@ def mergeBlocks(left, right, spacing=3, width=None):
     else:
       out.append(left[i])
   if len(right) > len(left):
-    for i in range(len(left), len(right)):
-      out.append((width + spacing)*" " + right[i])
+    out.extend((width + spacing) * " " + right[i]
+               for i in range(len(left), len(right)))
   return out
 
 
@@ -104,7 +99,7 @@ def outputEls(content, theme, struc, leaves, depth):
   name, type_, offset = struc["name"], struc["type"], struc["offset"]
   offsetLen = len("%X" % len(content)) + 1
   mask = "%%0%iX" % offsetLen
- 
+
   # no size specified? compute it
   size, indexesASCII = getSizeIdx(struc, leaves, offset)  
 
@@ -114,13 +109,14 @@ def outputEls(content, theme, struc, leaves, depth):
   sStructure.openTag(0, theme.bg) # will be closed at EOL on rendering
   sStructure.openTag(0, theme.font) # will be closed at EOL on rendering
 
-  lines = {}
   delta = offset%16
   startOffset = offset - delta
   endOffset = offset+size - (offset+size)%16
 
-  for i in range(startOffset, offset + size, 16):
-    lines[i] = AnsiStr(mixedHex(content, offset, i, 16, indexesASCII))
+  lines = {
+      i: AnsiStr(mixedHex(content, offset, i, 16, indexesASCII))
+      for i in range(startOffset, offset + size, 16)
+  }
   lines[startOffset].text = delta * "   " + lines[startOffset].text[delta*3:]
   lines[endOffset].text = lines[endOffset].text[:((offset + size) % 16) * 3 - 1] + "   " * (16-((offset + size) % 16))
 
@@ -149,10 +145,10 @@ def outputEls(content, theme, struc, leaves, depth):
 
   lFieldVals = []
   # hack to turn change color of undefined nibbles
-  
+
   for fieldVal in fieldVals:
     loffset, field, value = fieldVal
-    lFieldVals.append(loffset + " " + rawljust(field, width + 1) + " " + value)
+    lFieldVals.append(f"{loffset} {rawljust(field, width + 1)} {value}")
 
   HexBlock = []
   for i in range(startOffset, offset + size, 16):
@@ -165,14 +161,14 @@ def outputEls(content, theme, struc, leaves, depth):
     l += repr(lines[i])
     HexBlock.append(l)
 
-  
+
   #bottom lowNibbles line
   #TODO? optionally outside of the recursive display
   lowNibbles = (offsetLen + 2+4)*" " + fg("  ".join("%x".ljust(2) % i for i in range(16)), theme.hex)
 
   #OPTIONAL - low nibbles lines below hex values
   HexBlock.append(lowNibbles)
-  
+
   print(repr(sStructure) + " (%X+%X)" % (offset, size))
   #OPTIONAL: low nibbles line above hex values
   #print lowNibbles
@@ -215,10 +211,10 @@ if __name__ == "__main__":
   hash_ = hashlib.sha256(contents).hexdigest().lower()
   assert hash_ == myJson["SHA256"].lower()
   header = [
-    "length: {len:d} (0x{len:x})".format(len=fileLen),
-    "MD5:    %s" % hashlib.md5(contents).hexdigest().lower(),
-    "SHA1:   " + hashlib.sha1(contents).hexdigest().lower(),
-    "SHA256: " + hashlib.sha256(contents).hexdigest().lower(), # Pfeww, just below 80 columns :p
+      "length: {len:d} (0x{len:x})".format(len=fileLen),
+      f"MD5:    {hashlib.md5(contents).hexdigest().lower()}",
+      f"SHA1:   {hashlib.sha1(contents).hexdigest().lower()}",
+      f"SHA256: {hashlib.sha256(contents).hexdigest().lower()}",
   ]
   print("\n".join(header))
   print()

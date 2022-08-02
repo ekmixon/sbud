@@ -13,26 +13,26 @@ class PNGparser(Parser):
     return contents.startswith(b"\x89PNG\r\n\x1a\n")
 
   def run(self, contents, fn):
-    defs = {}
     source = Source()
     # libpng/png.h
-    
+
     #TODO: not enforce this?
     offset = 0
-  
+
     header = [
       "; Type: PNG"
     ]
 
-    defs["ddbe"] = [
-      "%macro ddbe 1",
-      "  db (%1>>8*3) & 0ffh",
-      "  db (%1>>8*2) & 0ffh",
-      "  db (%1>>8*1) & 0ffh",
-      "  db (%1>>8*0) & 0ffh",
-      "%endmacro"
-    ]
-
+    defs = {
+        "ddbe": [
+            "%macro ddbe 1",
+            "  db (%1>>8*3) & 0ffh",
+            "  db (%1>>8*2) & 0ffh",
+            "  db (%1>>8*1) & 0ffh",
+            "  db (%1>>8*0) & 0ffh",
+            "%endmacro",
+        ]
+    }
     fileStruc = Structure("Type:PNG", offset, "file")
 
     #TODO: to make obsolete via structure
@@ -67,7 +67,7 @@ class PNGparser(Parser):
 
       type_ = String("type", 4, "chunk type")
       offset += process(contents, type_, offset, chunk, source, depth, NoneVarLoc=2)
-      chunk.name = "Chunk: " + CHUNK_TYPES[type_.raw]
+      chunk.name = f"Chunk: {CHUNK_TYPES[type_.raw]}"
       # now we can document the chunk type
       source.preCom(
         chunkOffset,
@@ -77,7 +77,7 @@ class PNGparser(Parser):
       )
 
       dataOffset = offset
-      
+
       depth += 1
 
       if length.raw > 0: # bug with incbin if length is null
